@@ -12,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.dicoding.picodiploma.loginwithanimation.data.pref.UserModel
+import com.dicoding.picodiploma.loginwithanimation.data.response.LoginResponse
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityLoginBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
 import com.dicoding.picodiploma.loginwithanimation.view.main.MainActivity
@@ -30,6 +31,18 @@ class LoginActivity : AppCompatActivity() {
         setupView()
         setupAction()
         playAnimation()
+
+        viewModel.loginResult.observe(this) {loginResponse ->
+            handleLoginResult(loginResponse)
+        }
+
+        viewModel.isLoading.observe(this) {
+            showLoading(it)
+        }
+    }
+
+    private fun showLoading(it: Boolean) {
+        binding.loading.visibility = if (it) View.VISIBLE else View.GONE
     }
 
     private fun setupView() {
@@ -48,16 +61,35 @@ class LoginActivity : AppCompatActivity() {
     private fun setupAction() {
         binding.loginButton.setOnClickListener {
             val email = binding.emailEditText.text.toString()
-            viewModel.saveSession(UserModel(email, "sample_token"))
+            val password = binding.passwordEditText.text.toString()
+
+            viewModel.login(email, password)
+        }
+    }
+
+    private fun handleLoginResult(loginResponse: LoginResponse) {
+        if (loginResponse.error == false) {
+            val token = loginResponse.loginResult?.token ?: ""
+            val userModel = UserModel(email = String(), token)
+            viewModel.saveSession(userModel)
             AlertDialog.Builder(this).apply {
                 setTitle("Yeah!")
-                setMessage("Anda berhasil login. Sudah tidak sabar untuk belajar ya?")
+                setMessage("Success")
                 setPositiveButton("Lanjut") { _, _ ->
                     val intent = Intent(context, MainActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                     startActivity(intent)
                     finish()
                 }
+                create()
+                show()
+            }
+        } else {
+            val errorMessage = loginResponse.message ?: "Unknown Error"
+            AlertDialog.Builder(this).apply {
+                setTitle("Login gagal")
+                setMessage(errorMessage)
+                setPositiveButton("OK", null)
                 create()
                 show()
             }
