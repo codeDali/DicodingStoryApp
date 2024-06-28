@@ -20,4 +20,9 @@
     <string name="lipsum_1p">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ligula est, rhoncus vel diam et, rhoncus accumsan nibh. Integer lacinia ex ac nibh pulvinar, ac volutpat mi placerat. Morbi semper nibh et ex tincidunt, eget faucibus ligula dignissim. Integer porta nisi vel posuere maximus. Nam faucibus nulla in finibus lacinia. Donec ornare dui id velit blandit, non tincidunt magna ultricies. Vivamus nec ipsum id orci vulputate vestibulum at vel tellus. Sed fermentum urna nec semper interdum. Phasellus placerat vel diam ac finibus. In maximus sollicitudin ultrices. Praesent tempor arcu consequat ex accumsan sagittis. Etiam sollicitudin nec turpis non vehicula. Nunc consectetur, quam vel molestie porttitor, libero lacus blandit sem, at hendrerit arcu metus id ligula. Nunc accumsan sem at ante aliquet, ut ultricies dui euismod.</string>
     <string name="empty_image_warning">Gambar anda kosong\n</string>
     <string name="upload">upload\n</string>
+    <string name="error_password">Password harus lebih dari 8 karakter\n\n</string>
+    <string name="open_map">map\n</string>
+    <string name="tambahkan_lokasi">Tambahkan Lokasi</string>
+    <string name="muat_ulang">Muat Ulang</string>
+    <string name="user_story">User Story</string>
 </resources>

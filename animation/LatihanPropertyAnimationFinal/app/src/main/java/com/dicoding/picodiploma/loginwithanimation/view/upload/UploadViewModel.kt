@@ -9,16 +9,28 @@ import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 
-class UploadViewModel (private val repository: UserRepository): ViewModel() {
+class UploadViewModel(private val repository: UserRepository) : ViewModel() {
+
     val uploadResult = MutableLiveData<UploadResponse>()
 
-    fun uploadStory(file: MultipartBody.Part, description: RequestBody) {
+    fun uploadStory(imagePart: MultipartBody.Part, descriptionPart: okhttp3.RequestBody) {
         viewModelScope.launch {
             try {
-                val response = repository.uploadStory(file, description)
-                uploadResult.postValue(response)
+                val response = repository.uploadStory(imagePart, descriptionPart)
+                uploadResult.value = response
             } catch (e: Exception) {
-                uploadResult.postValue(UploadResponse(error = true, message = e.message.toString()))
+                uploadResult.value = UploadResponse(error = true, message = e.message)
+            }
+        }
+    }
+
+    fun uploadStory(imagePart: MultipartBody.Part, descriptionPart: okhttp3.RequestBody, latitude: RequestBody, longitude: RequestBody) {
+        viewModelScope.launch {
+            try {
+                val response = repository.uploadStory(imagePart, descriptionPart, latitude, longitude)
+                uploadResult.value = response
+            } catch (e: Exception) {
+                uploadResult.value = UploadResponse(error = true, message = e.message)
             }
         }
     }

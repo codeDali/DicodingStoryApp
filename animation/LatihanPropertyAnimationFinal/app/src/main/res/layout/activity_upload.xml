@@ -64,6 +64,12 @@
                 android:fontFamily="@font/sf_r"
                 android:hint="Hai, ini adalah ceritaku tentang..." />
 
+            <CheckBox
+                android:id="@+id/cb_loc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tambahkan_lokasi"/>
+
             <Button
                 android:id="@+id/uploadbtn"
                 android:layout_width="match_parent"

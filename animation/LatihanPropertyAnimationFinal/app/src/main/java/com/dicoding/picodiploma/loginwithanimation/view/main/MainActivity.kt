@@ -21,10 +21,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dicoding.picodiploma.loginwithanimation.R
+import com.dicoding.picodiploma.loginwithanimation.adapter.LoadingStateAdapter
 import com.dicoding.picodiploma.loginwithanimation.adapter.StoriesAdapter
 import com.dicoding.picodiploma.loginwithanimation.data.response.StoriesResponse
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityMainBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
+import com.dicoding.picodiploma.loginwithanimation.view.maps.MapsActivity
 import com.dicoding.picodiploma.loginwithanimation.view.upload.UploadActivity
 import com.dicoding.picodiploma.loginwithanimation.view.welcome.WelcomeActivity
 
@@ -41,7 +43,6 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
 
-
         binding.root?.let { rootView ->
 
             ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
@@ -55,8 +56,6 @@ class MainActivity : AppCompatActivity() {
             if (!user.isLogin) {
                 startActivity(Intent(this, WelcomeActivity::class.java))
                 finish()
-            } else {
-                viewModel.getStories()
             }
         }
 
@@ -67,8 +66,8 @@ class MainActivity : AppCompatActivity() {
         binding.rvStories.adapter = storiesAdapter
 
 
-        viewModel.stories.observe(this) { storiesResponse ->
-            setStories(storiesResponse)
+        viewModel.stories.observe(this) { pagingData ->
+            storiesAdapter.submitData(lifecycle, pagingData)
         }
 
         viewModel.isLoading.observe(this) { isLoading ->
@@ -97,15 +96,30 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
+        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_open_map -> {
+                    val intent = Intent(this, MapsActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
+        }
+
+        setStories()
         setupView()
         playAnimation()
     }
 
-    private fun setStories(storiesResponse: StoriesResponse) {
-        val consumerStory = storiesResponse.listStory
+
+    private fun setStories() {
         val adapter = StoriesAdapter()
-        adapter.submitList(consumerStory)
-        binding.rvStories.adapter = adapter
+        binding.rvStories.adapter = adapter.withLoadStateFooter(
+            footer = LoadingStateAdapter {
+                adapter.retry()
+            }
+        )
 
     }
 

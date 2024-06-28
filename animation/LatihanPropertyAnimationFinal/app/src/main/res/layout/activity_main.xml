@@ -16,6 +16,7 @@
             android:layout_height="wrap_content"
             android:minHeight="?attr/actionBarSize"
             android:background="#EEEEEE"
+            app:menu="@menu/menu_toolbar"
             app:navigationIcon="@drawable/logo_teks"
             app:liftOnScroll="true"
             app:liftOnScrollColor="@color/white"/>

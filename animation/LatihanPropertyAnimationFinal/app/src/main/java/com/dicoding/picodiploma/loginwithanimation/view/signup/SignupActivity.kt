@@ -17,12 +17,16 @@ import com.dicoding.picodiploma.loginwithanimation.R
 import com.dicoding.picodiploma.loginwithanimation.data.response.SignUpResponse
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivitySignupBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
+import com.dicoding.picodiploma.loginwithanimation.view.custom.Email
+import com.dicoding.picodiploma.loginwithanimation.view.custom.Password
 
 class SignupActivity : AppCompatActivity() {
     private val viewModel by viewModels<SignupViewModel> {
         ViewModelFactory.getInstance(this)
     }
     private lateinit var binding: ActivitySignupBinding
+    private lateinit var password: Password
+    private lateinit var email: Email
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,43 +34,9 @@ class SignupActivity : AppCompatActivity() {
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.passwordEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+        password = binding.passwordEditText
+        email = binding.emailEditText
 
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                validatePassword(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-        })
-
-        binding.emailEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                validateEmail(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
-
-        binding.nameEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                validateName(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
 
         viewModel.signUpResult.observe(this) {registerResponse ->
             handleRegisterResult(registerResponse)
@@ -107,33 +77,6 @@ class SignupActivity : AppCompatActivity() {
             }
         }
     }
-
-    private fun validateName(name: String) {
-        if (name.isEmpty()) {
-            binding.nameEditTextLayout.error = getString(R.string.name_warning)
-        } else {
-            binding.nameEditTextLayout.error = null
-        }
-    }
-
-    private fun validateEmail(email: String) {
-        if (email.isEmpty()) {
-            binding.emailEditTextLayout.error = getString(R.string.error_empty_email)
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.emailEditTextLayout.error = getString(R.string.error_invalid_email)
-        } else {
-            binding.emailEditTextLayout.error = null
-        }
-    }
-
-    private fun validatePassword(password: String) {
-        if (password.length < 8) {
-            binding.passwordEditTextLayout.error = getString(R.string.password_warning)
-        } else {
-            binding.passwordEditTextLayout.error = null
-        }
-    }
-
 
     private fun setupView() {
         @Suppress("DEPRECATION")
