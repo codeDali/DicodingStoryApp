@@ -8,26 +8,26 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.dicoding.picodiploma.loginwithanimation.R
-import com.dicoding.picodiploma.loginwithanimation.data.retrofit.ApiClient
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityUploadBinding
 import com.dicoding.picodiploma.loginwithanimation.utils.getImageUri
 import com.dicoding.picodiploma.loginwithanimation.utils.uriToFile
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
 import com.dicoding.picodiploma.loginwithanimation.view.main.MainActivity
-import com.dicoding.picodiploma.loginwithanimation.view.signup.SignupViewModel
+import com.dicoding.picodiploma.loginwithanimation.view.main.MainViewModel
+import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
@@ -37,6 +37,9 @@ class UploadActivity : AppCompatActivity() {
     }
     private lateinit var binding: ActivityUploadBinding
     private var currentImageUri: Uri? = null
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
+    private var currentLocation: LatLng? = null
 
     private val requestPermissionLauncher =
         registerForActivityResult(
@@ -44,28 +47,30 @@ class UploadActivity : AppCompatActivity() {
         ) { isGranted: Boolean ->
             if (isGranted) {
                 Toast.makeText(this, "Permission request granted", Toast.LENGTH_LONG).show()
+                startLocationUpdates()
             } else {
                 Toast.makeText(this, "Permission request denied", Toast.LENGTH_LONG).show()
             }
         }
 
-    private fun allPermissionsGranted() =
-        ContextCompat.checkSelfPermission(
-            this,
-            REQUIRED_PERMISSION
-        ) == PackageManager.PERMISSION_GRANTED
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         binding = ActivityUploadBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         binding.gallerybtn.setOnClickListener { startGallery() }
-
         binding.camerabtn.setOnClickListener { startCamera() }
-
         binding.uploadbtn.setOnClickListener { uploadImage() }
+
+        setupLocationCallback()
+
+        if (allPermissionsGranted()) {
+            startLocationUpdates()
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
 
         viewModel.uploadResult.observe(this) { response ->
             if (response.error == false) {
@@ -78,6 +83,49 @@ class UploadActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun setupLocationCallback() {
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                val location = locationResult.lastLocation
+                if (location != null) {
+                    currentLocation = LatLng(location.latitude, location.longitude)
+                    Log.d("UploadActivity", "Current location: $currentLocation")
+                }
+            }
+        }
+    }
+
+    private fun startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        val locationRequest = LocationRequest.create().apply {
+            interval = 10000 // 10 seconds
+            fastestInterval = 5000 // 5 seconds
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    private fun allPermissionsGranted() =
+        ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
 
     private fun startGallery() {
         launcherGallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -127,8 +175,17 @@ class UploadActivity : AppCompatActivity() {
                 imageFile.name,
                 requestImageFile
             )
+
             lifecycleScope.launch {
-                viewModel.uploadStory(multipartBody, requestBody)
+                if (binding.cbLoc.isChecked && currentLocation != null) {
+                    val latitude = currentLocation?.latitude.toString().toRequestBody("text/plain".toMediaType())
+                    val longitude = currentLocation?.longitude.toString().toRequestBody("text/plain".toMediaType())
+                    viewModel.uploadStory(multipartBody, requestBody, latitude, longitude)
+                    finish()
+                } else {
+                    viewModel.uploadStory(multipartBody, requestBody)
+                    finish()
+                }
             }
         } ?: showToast(getString(R.string.empty_image_warning))
     }
@@ -136,11 +193,15 @@ class UploadActivity : AppCompatActivity() {
     private fun showLoading(isLoading: Boolean) {
         binding.loading.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
+
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
-    companion object {
-        private const val REQUIRED_PERMISSION = Manifest.permission.CAMERA
-    }
 
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopLocationUpdates()
+    }
 }

@@ -5,26 +5,24 @@ import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dicoding.picodiploma.loginwithanimation.R
 import com.dicoding.picodiploma.loginwithanimation.adapter.StoriesAdapter
+import com.dicoding.picodiploma.loginwithanimation.data.response.StoriesItem
 import com.dicoding.picodiploma.loginwithanimation.data.response.StoriesResponse
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityMainBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
+import com.dicoding.picodiploma.loginwithanimation.view.detail.DetailActivity
+import com.dicoding.picodiploma.loginwithanimation.view.maps.MapsActivity
 import com.dicoding.picodiploma.loginwithanimation.view.upload.UploadActivity
 import com.dicoding.picodiploma.loginwithanimation.view.welcome.WelcomeActivity
 
@@ -32,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
     }
+    private lateinit var adapter: StoriesAdapter
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,12 +62,8 @@ class MainActivity : AppCompatActivity() {
         val layoutManager = LinearLayoutManager(this)
         binding.rvStories.layoutManager = layoutManager
 
-        val storiesAdapter = StoriesAdapter()
-        binding.rvStories.adapter = storiesAdapter
-
-
         viewModel.stories.observe(this) { storiesResponse ->
-            setStories(storiesResponse)
+            setStories()
         }
 
         viewModel.isLoading.observe(this) { isLoading ->
@@ -97,16 +92,34 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
+        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.maps -> {
+                    val intent = Intent(this, MapsActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
+        }
+
+
         setupView()
         playAnimation()
     }
 
-    private fun setStories(storiesResponse: StoriesResponse) {
-        val consumerStory = storiesResponse.listStory
-        val adapter = StoriesAdapter()
-        adapter.submitList(consumerStory)
-        binding.rvStories.adapter = adapter
 
+
+    private fun setStories() {
+        adapter = StoriesAdapter{ story ->
+            val intent = Intent(this, DetailActivity::class.java)
+            intent.putExtra(DetailActivity.EXTRA_STORY_ID, story)
+            startActivity(intent)
+        }
+        binding.rvStories.adapter = adapter
+        viewModel.stories2.observe(this){
+            adapter.submitData(lifecycle,it)
+        }
     }
 
     private fun showLoading(isLoading: Boolean) {
@@ -124,6 +137,11 @@ class MainActivity : AppCompatActivity() {
             )
         }
         supportActionBar?.hide()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setStories()
     }
 
     private fun playAnimation() {

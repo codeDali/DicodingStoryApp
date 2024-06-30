@@ -16,6 +16,7 @@
             android:layout_height="wrap_content"
             android:minHeight="?attr/actionBarSize"
             android:background="#EEEEEE"
+            app:menu="@menu/topbar_menu"
             app:navigationIcon="@drawable/logo_teks"
             app:liftOnScroll="true"
             app:liftOnScrollColor="@color/white"/>
@@ -59,6 +60,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="20dp"
+        android:contentDescription="@string/tambahkan_cerita"
         app:layout_anchor="@id/rvStories"
         app:layout_anchorGravity="bottom|center"
         android:src="@drawable/upload" />
@@ -70,6 +72,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
         android:layout_marginEnd="20dp"
+        android:contentDescription="@string/ganti_akun"
         android:src="@drawable/logout"
         app:layout_anchor="@id/rvStories"
         app:layout_anchorGravity="bottom|end" />

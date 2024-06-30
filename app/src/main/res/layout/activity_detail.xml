@@ -11,6 +11,7 @@
         android:id="@+id/ivDetail"
         android:layout_width="match_parent"
         android:layout_height="300dp"
+        android:contentDescription="@string/story_pengguna"
         android:scaleType="centerCrop"
         tools:src="@tools:sample/avatars"
         app:layout_constraintTop_toTopOf="parent"

@@ -1,7 +1,8 @@
 package com.dicoding.picodiploma.loginwithanimation.view.detail
 
+import android.os.Build
 import android.os.Bundle
-import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -9,7 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
 import com.dicoding.picodiploma.loginwithanimation.R
-import com.dicoding.picodiploma.loginwithanimation.data.response.DetailStoryResponse
+import com.dicoding.picodiploma.loginwithanimation.data.response.StoriesItem
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityDetailBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
 
@@ -31,35 +32,33 @@ class DetailActivity : AppCompatActivity() {
             insets
         }
 
-        val Id = intent.getStringExtra(EXTRA_STORY_ID)
-        if (Id != null) {
-            viewModel.getStoryId(Id)
+        val story: StoriesItem? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(EXTRA_STORY_ID, StoriesItem::class.java)
+        } else {
+            intent.getParcelableExtra(EXTRA_STORY_ID)
         }
 
-        viewModel.detailstory.observe(this) {DetailResponse ->
-            fetchStories(DetailResponse)
+        if (story != null) {
+            fetchStories(story)
+        } else {
+            Toast.makeText(this, "No story data available", Toast.LENGTH_SHORT).show()
+            finish()
         }
 
-        viewModel.isLoading.observe(this) {
-            showLoading(it)
-        }
 
-        binding.placeholder.text = "Deskripsi"
+        binding.placeholder.text = getString(R.string.deskripsi)
     }
 
-    private fun showLoading(it: Boolean) {
-        binding.loading.visibility = if (it) View.VISIBLE else View.GONE
-    }
-
-    private fun fetchStories(detailStoryResponse: DetailStoryResponse) {
-        detailStoryResponse.story?.let { story ->
-            binding.tvusernameDetail.text = story.name
-            binding.tvDescriptionDetail.text = story.description
-            binding.tvTimeDetail.text = story.createdAt
+    private fun fetchStories(story: StoriesItem) {
+            binding.apply {
+                binding.tvusernameDetail.text = story.name
+                binding.tvDescriptionDetail.text = story.description
+                binding.tvTimeDetail.text = story.createdAt
+            }
             Glide.with(this)
                 .load(story.photoUrl)
                 .into(binding.ivDetail)
-        }
+
     }
 
     companion object {

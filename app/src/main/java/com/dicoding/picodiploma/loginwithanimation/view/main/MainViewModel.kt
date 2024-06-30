@@ -5,15 +5,20 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.dicoding.picodiploma.loginwithanimation.helper.UserRepository
 import com.dicoding.picodiploma.loginwithanimation.data.pref.UserModel
 import com.dicoding.picodiploma.loginwithanimation.data.response.ErrorResponse
+import com.dicoding.picodiploma.loginwithanimation.data.response.StoriesItem
 import com.dicoding.picodiploma.loginwithanimation.data.response.StoriesResponse
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
 class MainViewModel(private val repository: UserRepository) : ViewModel() {
+
+    val stories2: LiveData<PagingData<StoriesItem>> = repository.getStories().cachedIn(viewModelScope)
 
     private val _stories = MutableLiveData<StoriesResponse>()
     val stories: LiveData<StoriesResponse> = _stories
