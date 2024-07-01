@@ -18,6 +18,7 @@ import retrofit2.HttpException
 
 class MainViewModel(private val repository: UserRepository) : ViewModel() {
 
+
     val stories2: LiveData<PagingData<StoriesItem>> = repository.getStories().cachedIn(viewModelScope)
 
     private val _stories = MutableLiveData<StoriesResponse>()

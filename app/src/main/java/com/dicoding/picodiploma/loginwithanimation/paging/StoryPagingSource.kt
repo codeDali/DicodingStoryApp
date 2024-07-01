@@ -7,25 +7,22 @@ import com.dicoding.picodiploma.loginwithanimation.data.retrofit.ApiService
 
 class StoryPagingSource(private val apiService: ApiService): PagingSource<Int, StoriesItem>() {
 
-    private companion object {
-        const val INITIAL_PAGE_INDEX = 1
-    }
-
     override fun getRefreshKey(state: PagingState<Int, StoriesItem>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
-            val anchorPage = state.closestPageToPosition(anchorPosition)
-            anchorPage?.prevKey?.plus(1) ?: anchorPage?.nextKey?.minus(1)
+            state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
+                ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
         }
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, StoriesItem> {
+        val position = params.key ?: 1
         return try {
-            val position = params.key ?: INITIAL_PAGE_INDEX
-            val responseData = apiService.getStories(position, params.loadSize)
+            val response = apiService.getStories(page = position, size = params.loadSize)
+            val stories = response.listStory
             LoadResult.Page(
-                data = responseData.listStory?.filterNotNull() ?: emptyList(),
-                prevKey = if (position == INITIAL_PAGE_INDEX) null else position - 1,
-                nextKey = if (responseData.listStory.isNullOrEmpty()) null else position + 1
+                data = stories,
+                prevKey = if (position == 1) null else position - 1,
+                nextKey = if (stories.isEmpty()) null else position + 1
             )
         } catch (exception: Exception) {
             return LoadResult.Error(exception)

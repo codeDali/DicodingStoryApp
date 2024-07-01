@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         binding.rvStories.layoutManager = layoutManager
 
         viewModel.stories.observe(this) { storiesResponse ->
-            setStories()
+            setStories(storiesResponse)
         }
 
         viewModel.isLoading.observe(this) { isLoading ->
@@ -108,9 +108,7 @@ class MainActivity : AppCompatActivity() {
         playAnimation()
     }
 
-
-
-    private fun setStories() {
+    private fun setStories(storiesResponse: StoriesResponse) {
         adapter = StoriesAdapter{ story ->
             val intent = Intent(this, DetailActivity::class.java)
             intent.putExtra(DetailActivity.EXTRA_STORY_ID, story)
@@ -137,11 +135,6 @@ class MainActivity : AppCompatActivity() {
             )
         }
         supportActionBar?.hide()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        setStories()
     }
 
     private fun playAnimation() {

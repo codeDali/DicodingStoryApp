@@ -23,14 +23,5 @@ class UploadViewModel (private val repository: UserRepository): ViewModel() {
         }
     }
 
-    fun uploadStory(imagePart: MultipartBody.Part, descriptionPart: RequestBody, latitude: RequestBody, longitude: RequestBody) {
-        viewModelScope.launch {
-            try {
-                val response = repository.uploadStory(imagePart, descriptionPart, latitude, longitude)
-                uploadResult.value = response
-            } catch (e: Exception) {
-                uploadResult.value = UploadResponse(error = true, message = e.message)
-            }
-        }
-    }
+
 }
